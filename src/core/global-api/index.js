@@ -1,35 +1,36 @@
 /* @flow */
 
-import config from '../config'
-import { initUse } from './use'
-import { initMixin } from './mixin'
-import { initExtend } from './extend'
-import { initAssetRegisters } from './assets'
-import { set, del } from '../observer/index'
-import { ASSET_TYPES } from 'shared/constants'
-import builtInComponents from '../components/index'
-import { observe } from 'core/observer/index'
+import config from "../config";
+import { initUse } from "./use";
+import { initMixin } from "./mixin";
+import { initExtend } from "./extend";
+import { initAssetRegisters } from "./assets";
+import { set, del } from "../observer/index";
+import { ASSET_TYPES } from "shared/constants";
+import builtInComponents from "../components/index";
+import { observe } from "core/observer/index";
 
 import {
   warn,
   extend,
   nextTick,
   mergeOptions,
-  defineReactive
-} from '../util/index'
+  defineReactive,
+} from "../util/index";
 
-export function initGlobalAPI (Vue: GlobalAPI) {
+//入口文件调取的入口函数
+export function initGlobalAPI(Vue: GlobalAPI) {
   // config
-  const configDef = {}
-  configDef.get = () => config
-  if (process.env.NODE_ENV !== 'production') {
+  const configDef = {};
+  configDef.get = () => config;
+  if (process.env.NODE_ENV !== "production") {
     configDef.set = () => {
       warn(
-        'Do not replace the Vue.config object, set individual fields instead.'
-      )
-    }
+        "Do not replace the Vue.config object, set individual fields instead."
+      );
+    };
   }
-  Object.defineProperty(Vue, 'config', configDef)
+  Object.defineProperty(Vue, "config", configDef);
 
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on
@@ -38,32 +39,35 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     warn,
     extend,
     mergeOptions,
-    defineReactive
-  }
+    defineReactive,
+  };
 
-  Vue.set = set
-  Vue.delete = del
-  Vue.nextTick = nextTick
+  Vue.set = set;
+  Vue.delete = del;
+  Vue.nextTick = nextTick;
 
-  // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
-    observe(obj)
-    return obj
-  }
+  // 2.6 explicit observable API - 因为影响高亮去掉泛型
+  Vue.observable = (obj) => {
+    observe(obj);
+    return obj;
+  };
 
-  Vue.options = Object.create(null)
-  ASSET_TYPES.forEach(type => {
-    Vue.options[type + 's'] = Object.create(null)
-  })
+  // 创建options选项
+  Vue.options = Object.create(null);
+  //options 挂载 component directive filter
+  ASSET_TYPES.forEach((type) => {
+    Vue.options[type + "s"] = Object.create(null);
+  });
 
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
-  Vue.options._base = Vue
+  Vue.options._base = Vue;
 
-  extend(Vue.options.components, builtInComponents)
+  extend(Vue.options.components, builtInComponents);
 
-  initUse(Vue)
-  initMixin(Vue)
-  initExtend(Vue)
-  initAssetRegisters(Vue)
+  initUse(Vue);
+  //初始化全局mixins方法
+  initMixin(Vue);
+  initExtend(Vue);
+  initAssetRegisters(Vue);
 }

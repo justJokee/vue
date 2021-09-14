@@ -21,7 +21,7 @@
       }
     </style>
     <!-- Delete ".min" for console warnings in development -->
-    <script src="../../dist/vue.min.js"></script>
+    <script src="../../dist/vue.js"></script>
   </head>
   <body>
 
@@ -38,7 +38,8 @@
         <ul v-show="open" v-if="isFolder">
           <item
             class="item"
-            v-for="model in model.children"
+            v-for="(model,index) in model.children"
+            :key = 'index'
             :model="model">
           </item>
           <li class="add" @click="addChild">+</li>
