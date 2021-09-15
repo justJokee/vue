@@ -1,6 +1,6 @@
 /* @flow */
 /**
- * vue实例文件中调用
+ * vue实例化被调用的唯一函数 被 ./index引用
  */
 import config from "../config";
 import { initProxy } from "./proxy";

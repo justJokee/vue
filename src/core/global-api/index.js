@@ -1,5 +1,7 @@
 /* @flow */
-
+/*
+  被 ../core/index调用
+*/
 import config from "../config";
 import { initUse } from "./use";
 import { initMixin } from "./mixin";
@@ -20,7 +22,7 @@ import {
 
 //入口文件调取的入口函数
 export function initGlobalAPI(Vue: GlobalAPI) {
-  // config
+  // 添加只读的构造函数静态属性属性 config
   const configDef = {};
   configDef.get = () => config;
   if (process.env.NODE_ENV !== "production") {
@@ -46,13 +48,14 @@ export function initGlobalAPI(Vue: GlobalAPI) {
   Vue.delete = del;
   Vue.nextTick = nextTick;
 
-  // 2.6 explicit observable API - 因为影响高亮去掉泛型
-  Vue.observable = (obj) => {
+  // 2.6 explicit observable API
+  Vue.observable = <T>(obj: T): T => {
     observe(obj);
     return obj;
   };
+  ////加了注释为啥会出现这个？？////////////***</T>
 
-  // 创建options选项
+  // 创建options选项 挂载了一个空对象
   Vue.options = Object.create(null);
   //options 挂载 component directive filter
   ASSET_TYPES.forEach((type) => {
@@ -62,9 +65,9 @@ export function initGlobalAPI(Vue: GlobalAPI) {
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue;
-
+  // 属性合并
   extend(Vue.options.components, builtInComponents);
-
+  //添加 Vue.use
   initUse(Vue);
   //初始化全局mixins方法
   initMixin(Vue);

@@ -1,7 +1,7 @@
 /* @flow */
 /**
- * 完整运行时包基础入口，被 entry-runtime-with-compiler 引用
- * 主要为vue原型添加方法
+ * Vue的平台化包装，被 entry-runtime-with-compiler 引用
+ * 主要为vue构造函数和原型添加方法属性等
  */
 import Vue from "core/index";
 import config from "core/config";
@@ -21,6 +21,7 @@ import { patch } from "./patch";
 import platformDirectives from "./directives/index";
 import platformComponents from "./components/index";
 
+//覆盖在 core/global-api中挂载的config配置
 // install platform specific utils
 Vue.config.mustUseProp = mustUseProp;
 Vue.config.isReservedTag = isReservedTag;
@@ -29,10 +30,29 @@ Vue.config.getTagNamespace = getTagNamespace;
 Vue.config.isUnknownElement = isUnknownElement;
 
 // install platform runtime directives & components
+// 挂载 model 和 show
 extend(Vue.options.directives, platformDirectives);
+// 挂载 transition 和 transitionGroup
 extend(Vue.options.components, platformComponents);
+/**
+ * 此时的 Vue.options
+ Vue.options = {
+	components: {
+		KeepAlive,
+		Transition,
+		TransitionGroup
+	},
+	directives: {
+		model,
+		show
+	},
+	filters: Object.create(null),
+	_base: Vue
+}
+ */
 
 // install platform patch function
+//inBrowser其实判定了一个window是不是有意义 noop - 一个空函数
 Vue.prototype.__patch__ = inBrowser ? patch : noop;
 
 // public mount method

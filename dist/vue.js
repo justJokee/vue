@@ -5113,6 +5113,7 @@
   }
 
   function Vue(options) {
+    console.log("vue要实例化的options====>>>>", options);
     if ( !(this instanceof Vue)) {
       warn("Vue is a constructor and should be called with the `new` keyword");
     }
@@ -5135,12 +5136,14 @@
     Vue.use = function (plugin) {
       var installedPlugins =
         this._installedPlugins || (this._installedPlugins = []);
+      //避免重复注册
       if (installedPlugins.indexOf(plugin) > -1) {
         return this;
       }
 
       // additional parameters
       var args = toArray(arguments, 1);
+      //将Vue构造函数作为第一个元素
       args.unshift(this);
       if (typeof plugin.install === "function") {
         plugin.install.apply(plugin, args);
@@ -5479,11 +5482,12 @@
     Vue.delete = del;
     Vue.nextTick = nextTick;
 
-    // 2.6 explicit observable API - 因为影响高亮去掉泛型
+    // 2.6 explicit observable API
     Vue.observable = function (obj) {
       observe(obj);
       return obj;
     };
+    ////加了注释为啥会出现这个？？////////////***</T>
 
     // 创建options选项
     Vue.options = Object.create(null);
@@ -5508,19 +5512,19 @@
   /**
    * 被 src/platforms/web/runtime下的index.js引用
    * 扩展原型属性
-   * 挂载全局API
-   * 添加vue构造函数的静态属性
-   * 下一步进入vue构造函数
+   * 添加vue构造函数的静态属性和方法
    */
 
   /**
-   * initGlobalAPI 中为 vue 构造函数添加了 options 属性
+   * initGlobalAPI 中为 vue 构造函数添加了 options 等一些静态属性和方法
    */
+
   initGlobalAPI(Vue);
+  // 添加只读属性
   Object.defineProperty(Vue.prototype, "$isServer", {
     get: isServerRendering,
   });
-
+  // 添加只读属性
   Object.defineProperty(Vue.prototype, "$ssrContext", {
     get: function get() {
       /* istanbul ignore next */
@@ -9114,6 +9118,7 @@
 
   /*  */
 
+  //覆盖在 core/global-api中挂载的config配置
   // install platform specific utils
   Vue.config.mustUseProp = mustUseProp;
   Vue.config.isReservedTag = isReservedTag;
@@ -9122,10 +9127,29 @@
   Vue.config.isUnknownElement = isUnknownElement;
 
   // install platform runtime directives & components
+  // 挂载 model 和 show
   extend(Vue.options.directives, platformDirectives);
+  // 挂载 transition 和 transitionGroup
   extend(Vue.options.components, platformComponents);
+  /**
+   * 此时的 Vue.options
+   Vue.options = {
+  	components: {
+  		KeepAlive,
+  		Transition,
+  		TransitionGroup
+  	},
+  	directives: {
+  		model,
+  		show
+  	},
+  	filters: Object.create(null),
+  	_base: Vue
+  }
+   */
 
   // install platform patch function
+  //inBrowser其实判定了一个window是不是有意义 noop - 一个空函数
   Vue.prototype.__patch__ = inBrowser ? patch : noop;
 
   // public mount method

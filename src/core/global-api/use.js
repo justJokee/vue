@@ -6,12 +6,14 @@ export function initUse(Vue: GlobalAPI) {
   Vue.use = function (plugin: Function | Object) {
     const installedPlugins =
       this._installedPlugins || (this._installedPlugins = []);
+    //避免重复注册
     if (installedPlugins.indexOf(plugin) > -1) {
       return this;
     }
 
     // additional parameters
     const args = toArray(arguments, 1);
+    //将Vue构造函数作为第一个元素
     args.unshift(this);
     if (typeof plugin.install === "function") {
       plugin.install.apply(plugin, args);
