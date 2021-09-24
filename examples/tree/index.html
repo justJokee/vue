@@ -25,18 +25,40 @@
   </head>
   <body>
     <div class = 'root'>
-       <div id = 'app'>{{text}}</div>
+       <div id = 'app'>
+         <span>{{text}}</span>
+         <aaa></aaa>  
+       </div>
     </div>
     <script>
+      // Vue.config.performance = true
+    Vue.mixin({
+      mounted(sss){
+        console.log('这是一个全聚德混入')
+      }
+    })
+      const aaa = {
+        template: '<h1>66</h1>',
+        data(){
+          return {
+            childSay: 'error'
+          }
+          
+        },
+        mounted(){
+          console.log('子组件实例$options=======>>>>',this.$options)
+        }
+      }
       var vm = new Vue({
         el: '#app',
+        components: {
+          aaa: aaa
+        },
         data: {
           text: '嘻嘻'
         }
       })
-      setTimeout(() =>{
-        vm.text = '呵呵'
-      },3000)
+      console.log('vm.$options==========>>>>',vm.$options)
     </script>
   </body>
 </html>

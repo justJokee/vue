@@ -1,6 +1,6 @@
 /* @flow */
 /**
- * vue实例化被调用的唯一函数 被 ./index引用
+ * vue构造函数中被调用的唯一方法 被 ./index引用
  */
 import config from "../config";
 import { initProxy } from "./proxy";
@@ -11,7 +11,6 @@ import { mark, measure } from "../util/perf";
 import { initLifecycle, callHook } from "./lifecycle";
 import { initProvide, initInjections } from "./inject";
 import { extend, mergeOptions, formatComponentName } from "../util/index";
-
 let uid = 0;
 // new Vue 时构造函数只调用了这个方法
 export function initMixin(Vue: Class<Component>) {
@@ -22,6 +21,7 @@ export function initMixin(Vue: Class<Component>) {
     vm._uid = uid++;
 
     let startTag, endTag;
+    //初始化时的性能统计分析
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== "production" && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`;
@@ -39,9 +39,9 @@ export function initMixin(Vue: Class<Component>) {
       // internal component options needs special treatment.
       initInternalComponent(vm, options);
     } else {
-      //merge opiotns 合并选项
+      //merge options 合并选项
       vm.$options = mergeOptions(
-        //传入vue构造函数
+        //传入vue构造函数，返回构造函数上的options
         resolveConstructorOptions(vm.constructor), //parent
         options || {}, //children
         vm
@@ -102,9 +102,11 @@ export function initInternalComponent(
 export function resolveConstructorOptions(Ctor: Class<Component>) {
   //Ctor.options 在global-api中被挂载上
   let options = Ctor.options;
-  //Vue.extend() 衍生问题
+  //Vue.extend()创建的子类 衍生问题 TODO:
   if (Ctor.super) {
+    //获取当前构造函数父类构造函数的options
     const superOptions = resolveConstructorOptions(Ctor.super);
+    //获取当前构造函数的绑定的superOptions
     const cachedSuperOptions = Ctor.superOptions;
     if (superOptions !== cachedSuperOptions) {
       // super option changed,

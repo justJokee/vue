@@ -1161,6 +1161,7 @@
    * how to merge a parent option value and a child option
    * value into the final value.
    */
+  //合并选项的策略对象
   var strats = config.optionMergeStrategies;
 
   /**
@@ -1168,6 +1169,8 @@
    */
   {
     strats.el = strats.propsData = function (parent, child, vm, key) {
+      //vm为 merageOptions 函数透传过来的第三个参数（ const vm: Component = this;）即vue实例
+      //Vue.extend 中，使用了mergeOptions,但是没有传第三个参数
       if (!vm) {
         warn(
           "option \"" + key + "\" can only be used during instance " +
@@ -1194,6 +1197,7 @@
       toVal = to[key];
       fromVal = from[key];
       if (!hasOwn(to, key)) {
+        // set 即为 Vue.set()  core/observer/index.js
         set(to, key, fromVal);
       } else if (
         toVal !== fromVal &&
@@ -1214,8 +1218,10 @@
     childVal,
     vm
   ) {
+    //处理子组件选项
     if (!vm) {
       // in a Vue.extend merge, both should be functions
+      //在其它地方绑定了作用域
       if (!childVal) {
         return parentVal;
       }
@@ -1248,13 +1254,14 @@
       };
     }
   }
-
   strats.data = function (
     parentVal,
     childVal,
     vm
   ) {
+    // 非new Vue初始化
     if (!vm) {
+      //开发环境下，传入的不是函数，直接返回parentVal
       if (childVal && typeof childVal !== "function") {
         
           warn(
@@ -1279,6 +1286,8 @@
     parentVal,
     childVal
   ) {
+    // parentVal 只要存在肯定为函数，即使全局混入中存在hook，在vue.mixin的逻辑中，首先进行了options合并，
+    //即合并了 最初的 Vue.option,此时vue.options中是没有任何hook的
     var res = childVal
       ? parentVal
         ? parentVal.concat(childVal)
@@ -1286,9 +1295,10 @@
         ? childVal
         : [childVal]
       : parentVal;
+    console.log("混入===》》", res);
     return res ? dedupeHooks(res) : res;
   }
-
+  // 去重
   function dedupeHooks(hooks) {
     var res = [];
     for (var i = 0; i < hooks.length; i++) {
@@ -1401,6 +1411,7 @@
 
   /**
    * Validate component names
+   * 校验组件名是否符合要求
    */
   function checkComponents(options) {
     for (var key in options.components) {
@@ -1521,6 +1532,8 @@
    * Merge two option objects into a new one.
    * Core utility used in both instantiation and inheritance.
    * 用于实例化和继承的核心应用程序
+   * parent为vue构造函数中挂载的options属性
+   * child为传入构造函数的参数
    */
   function mergeOptions(
     parent,
@@ -1530,7 +1543,7 @@
     {
       checkComponents(child);
     }
-
+    // child有可能是vue子类的构造函数
     if (typeof child === "function") {
       child = child.options;
     }
@@ -1562,6 +1575,7 @@
       mergeField(key);
     }
     for (key in child) {
+      //TODO:
       if (!hasOwn(parent, key)) {
         mergeField(key);
       }
@@ -4987,7 +5001,6 @@
   }
 
   /*  */
-
   var uid$2 = 0;
   // new Vue 时构造函数只调用了这个方法
   function initMixin(Vue) {
@@ -4998,6 +5011,7 @@
       vm._uid = uid$2++;
 
       var startTag, endTag;
+      //初始化时的性能统计分析
       /* istanbul ignore if */
       if ( config.performance && mark) {
         startTag = "vue-perf-start:" + (vm._uid);
@@ -5015,9 +5029,9 @@
         // internal component options needs special treatment.
         initInternalComponent(vm, options);
       } else {
-        //merge opiotns 合并选项
+        //merge options 合并选项
         vm.$options = mergeOptions(
-          //传入vue构造函数
+          //传入vue构造函数，返回构造函数上的options
           resolveConstructorOptions(vm.constructor), //parent
           options || {}, //children
           vm
@@ -5076,9 +5090,11 @@
   function resolveConstructorOptions(Ctor) {
     //Ctor.options 在global-api中被挂载上
     var options = Ctor.options;
-    //Vue.extend() 衍生问题
+    //Vue.extend()创建的子类 衍生问题 TODO:
     if (Ctor.super) {
+      //获取当前构造函数父类构造函数的options
       var superOptions = resolveConstructorOptions(Ctor.super);
+      //获取当前构造函数的绑定的superOptions
       var cachedSuperOptions = Ctor.superOptions;
       if (superOptions !== cachedSuperOptions) {
         // super option changed,
@@ -5456,7 +5472,7 @@
 
   //入口文件调取的入口函数
   function initGlobalAPI(Vue) {
-    // config
+    // 添加只读的构造函数静态属性属性 config
     var configDef = {};
     configDef.get = function () { return config; };
     {
@@ -5489,7 +5505,7 @@
     };
     ////加了注释为啥会出现这个？？////////////***</T>
 
-    // 创建options选项
+    // 创建options选项 挂载了一个空对象
     Vue.options = Object.create(null);
     //options 挂载 component directive filter
     ASSET_TYPES.forEach(function (type) {
@@ -5499,9 +5515,9 @@
     // this is used to identify the "base" constructor to extend all plain-object
     // components with in Weex's multi-instance scenarios.
     Vue.options._base = Vue;
-
+    // 属性合并
     extend(Vue.options.components, builtInComponents);
-
+    //添加 Vue.use
     initUse(Vue);
     //初始化全局mixins方法
     initMixin$1(Vue);
@@ -12022,7 +12038,7 @@
 
     var options = this.$options;
     // resolve template/el and convert to render function
-    //没有render函数，则需要进行模板编译
+    // 没有render函数，则需要进行模板编译
     if (!options.render) {
       var template = options.template;
       if (template) {

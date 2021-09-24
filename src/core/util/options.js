@@ -23,6 +23,7 @@ import {
  * how to merge a parent option value and a child option
  * value into the final value.
  */
+//合并选项的策略对象
 const strats = config.optionMergeStrategies;
 
 /**
@@ -30,6 +31,8 @@ const strats = config.optionMergeStrategies;
  */
 if (process.env.NODE_ENV !== "production") {
   strats.el = strats.propsData = function (parent, child, vm, key) {
+    //vm为 merageOptions 函数透传过来的第三个参数（ const vm: Component = this;）即vue实例
+    //Vue.extend 中，使用了mergeOptions,但是没有传第三个参数
     if (!vm) {
       warn(
         `option "${key}" can only be used during instance ` +
@@ -56,6 +59,7 @@ function mergeData(to: Object, from: ?Object): Object {
     toVal = to[key];
     fromVal = from[key];
     if (!hasOwn(to, key)) {
+      // set 即为 Vue.set()  core/observer/index.js
       set(to, key, fromVal);
     } else if (
       toVal !== fromVal &&
@@ -76,8 +80,10 @@ export function mergeDataOrFn(
   childVal: any,
   vm?: Component
 ): ?Function {
+  //处理子组件选项
   if (!vm) {
     // in a Vue.extend merge, both should be functions
+    //在其它地方绑定了作用域
     if (!childVal) {
       return parentVal;
     }
@@ -110,13 +116,14 @@ export function mergeDataOrFn(
     };
   }
 }
-
 strats.data = function (
   parentVal: any,
   childVal: any,
   vm?: Component
 ): ?Function {
+  // 非new Vue初始化
   if (!vm) {
+    //开发环境下，传入的不是函数，直接返回parentVal
     if (childVal && typeof childVal !== "function") {
       process.env.NODE_ENV !== "production" &&
         warn(
@@ -141,6 +148,8 @@ function mergeHook(
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
 ): ?Array<Function> {
+  // parentVal 只要存在肯定为函数，即使全局混入中存在hook，在vue.mixin的逻辑中，首先进行了options合并，
+  //即合并了 最初的 Vue.option,此时vue.options中是没有任何hook的
   const res = childVal
     ? parentVal
       ? parentVal.concat(childVal)
@@ -148,9 +157,10 @@ function mergeHook(
       ? childVal
       : [childVal]
     : parentVal;
+  console.log("混入===》》", res);
   return res ? dedupeHooks(res) : res;
 }
-
+// 去重
 function dedupeHooks(hooks) {
   const res = [];
   for (let i = 0; i < hooks.length; i++) {
@@ -263,6 +273,7 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 
 /**
  * Validate component names
+ * 校验组件名是否符合要求
  */
 function checkComponents(options: Object) {
   for (const key in options.components) {
@@ -383,6 +394,8 @@ function assertObjectType(name: string, value: any, vm: ?Component) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  * 用于实例化和继承的核心应用程序
+ * parent为vue构造函数中挂载的options属性
+ * child为传入构造函数的参数
  */
 export function mergeOptions(
   parent: Object,
@@ -392,7 +405,7 @@ export function mergeOptions(
   if (process.env.NODE_ENV !== "production") {
     checkComponents(child);
   }
-
+  // child有可能是vue子类的构造函数
   if (typeof child === "function") {
     child = child.options;
   }
@@ -424,6 +437,7 @@ export function mergeOptions(
     mergeField(key);
   }
   for (key in child) {
+    //TODO:
     if (!hasOwn(parent, key)) {
       mergeField(key);
     }
